@@ -1,23 +1,24 @@
 #pragma once
 
 #include "Types.hpp"
-#include <string>
 
 class Patron {
 public:
-    Vec<int> current;
-    std::string name;
-    std::string email;
+    Patron(int patron_id, const String &name, const String &email,
+           int checked_out_count, const Vec<int> &current, double fines_owned);
+
+    [[nodiscard]] const Vec<u64> &get_current() const;
+    [[nodiscard]] const String &get_name() const;
+    [[nodiscard]] const String &get_email() const;
+    [[nodiscard]] double get_fines_owned() const;
+    [[nodiscard]] int get_patron_id() const;
+    [[nodiscard]] int get_checked_out_count() const;
+
+private:
+    Vec<u64> current;
+    String name;
+    String email;
     double fines_owned;
     int patron_id;
     int checked_out_count;
-
-    Patron(int patron_id, Str name, Str email, int checked_out_count,
-           const Vec<int> &current, double fines_owned);
-
-    static Vec<Patron> patron_registry;
-
-    static void test(void);
-
-private:
 };
