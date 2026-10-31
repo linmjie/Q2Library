@@ -22,3 +22,9 @@ private:
     int patron_id;
     int checked_out_count;
 };
+
+/**
+ * @brief Serializes a patrons.csv into a list of patrons
+ */
+Opt<Vec<Patron>> load_patrons(const Path &path);
+Opt<Patron> parse_patron_line(const String &line);

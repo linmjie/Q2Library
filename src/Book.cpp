@@ -48,12 +48,12 @@ Opt<Vec<Book>> load_books(const Path &path) {
 }
 
 Opt<Book> parse_book_line(const String &line) {
-    // could be done character by character but that sounds really annoying...
+    // could be done character by character or using find but that's annoying..
     std::stringstream ss(line);
 
     String title;
     String author;
-    u64 isbn;
+    u64 isbn{};
 
     String cell;
     // essentially boils down to:
