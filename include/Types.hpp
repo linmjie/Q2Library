@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+#include <optional>
 #include <span>
 #include <string>
 #include <string_view>
@@ -16,3 +18,7 @@ using String = std::string;
 template <typename T> using Span = std::span<const T>;
 
 template <typename T> using Vec = std::vector<T>;
+
+using Path = std::filesystem::path;
+
+template <typename T> using Opt = std::optional<T>;

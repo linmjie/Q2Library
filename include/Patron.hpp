@@ -5,7 +5,7 @@
 class Patron {
 public:
     Patron(int patron_id, const String &name, const String &email,
-           int checked_out_count, const Vec<int> &current, double fines_owned);
+           int checked_out_count, const Vec<u64> &current, double fines_owned);
 
     [[nodiscard]] const Vec<u64> &get_current() const;
     [[nodiscard]] const String &get_name() const;

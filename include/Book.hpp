@@ -2,7 +2,8 @@
 
 #include "Types.hpp"
 
-enum class CheckoutStatus : bool { Available, CheckedOut };
+enum class CheckoutStatus : bool { AVAILABLE, CHECKED_OUT };
+Opt<CheckoutStatus> str_to_checkout_status(const String &str);
 
 class Book {
 public:
@@ -22,3 +23,9 @@ private:
     CheckoutStatus checkout_status;
     int checkout_day;
 };
+
+/**
+ * @brief Serializes a library.csv into a list of books
+ */
+Opt<Vec<Book>> load_books(const Path &path);
+Opt<Book> parse_book_line(const String &line);
