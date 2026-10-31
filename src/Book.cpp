@@ -48,14 +48,14 @@ Opt<Vec<Book>> load_books(const Path &path) {
 }
 
 Opt<Book> parse_book_line(const String &line) {
-    // could be done character by character but that sounds really annoying...
+    // could be done character by character or using find but that's annoying..
     std::stringstream ss(line);
 
     String title;
     String author;
-    u64 isbn;
+    u64 isbn{};
 
-    String cell;
+    String buf;
     // essentially boils down to:
     // fscanf(ss, "%s;%s;%d;%d", title, author, &isbn, &status);
 
@@ -70,21 +70,21 @@ Opt<Book> parse_book_line(const String &line) {
         return std::nullopt;
     }
 
-    if (!std::getline(ss, cell, ';')) {
+    if (!std::getline(ss, buf, ';')) {
         return std::nullopt;
     }
     // Source: https://en.cppreference.com/cpp/utility/from_chars
     // Used to learn non-exception based safe atoi conversion
     auto [ptr, err] =
-        std::from_chars(cell.data(), cell.data() + cell.size(), isbn);
+        std::from_chars(buf.data(), buf.data() + buf.size(), isbn);
     if (err != std::errc()) {
         return std::nullopt;
     }
 
-    if (!std::getline(ss, cell, ';')) {
+    if (!std::getline(ss, buf, ';')) {
         return std::nullopt;
     }
-    Opt<CheckoutStatus> status = str_to_checkout_status(cell);
+    Opt<CheckoutStatus> status = str_to_checkout_status(buf);
     if (!status.has_value()) {
         return std::nullopt;
     }
