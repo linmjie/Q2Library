@@ -53,3 +53,11 @@ private:
  * @return The stream back out to use chain
  */
 std::ostream& operator<<(std::ostream& stream, const Patron &patron);
+/**
+ * @brief Serializes a patrons.csv into a list of patrons
+ */
+Opt<Vec<Patron>> load_patrons(const Path &path);
+/**
+ * @brief Serializes a patrons.csv into a list of patrons
+ */
+Opt<Patron> parse_patron_line(const String &line);

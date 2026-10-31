@@ -1,7 +1,4 @@
 #include "Patron.hpp"
-#include <cstdio>
-#include <iomanip>
-#include <ios>
 
 Patron::Patron(int patron_id, const String &name, const String &email,
                int checked_out_count, const Vec<u64> &current,
