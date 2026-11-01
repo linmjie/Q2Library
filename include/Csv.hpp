@@ -20,7 +20,7 @@ namespace csv {
 /**
  * @brief
  */
-[[nodiscard]] Opt<Patron> parse_patron_line(const String &line);
+[[nodiscard]] Opt<Patron> parse_patron_line(const String &line, int prev_id);
 /**
  * @brief 
  * @note May get swapped out with a templated version if needed

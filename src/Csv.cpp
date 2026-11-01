@@ -4,6 +4,7 @@
 #include "Types.hpp"
 #include <charconv>
 #include <fstream>
+#include <optional>
 #include <regex>
 #include <sstream>
 
@@ -59,7 +60,9 @@ Opt<Book> csv::parse_book_line(const String &line) {
     // Used to learn non-exception based safe atoi conversion
     auto [ptr, err] =
         std::from_chars(buf.data(), buf.data() + buf.size(), isbn);
-    if (err != std::errc()) {
+    if (err == std::errc::invalid_argument) {
+        return std::nullopt;
+    } else if (err == std::errc::result_out_of_range) {
         return std::nullopt;
     }
 
@@ -68,6 +71,11 @@ Opt<Book> csv::parse_book_line(const String &line) {
     }
     Opt<CheckoutStatus> status = str_to_checkout_status(buf);
     if (!status.has_value()) {
+        return std::nullopt;
+    }
+
+    ss >> std::ws;
+    if (!ss.eof()) {
         return std::nullopt;
     }
 
@@ -85,8 +93,8 @@ Opt<Vec<Patron>> csv::load_patrons(const Path &path) {
     std::getline(csv, head);
 
     String line;
-    while (std::getline(csv, line)) {
-        Opt<Patron> book = parse_patron_line(line);
+    for (int running_id = 0; std::getline(csv, line); running_id++) {
+        Opt<Patron> book = parse_patron_line(line, running_id);
         if (!book.has_value()) {
             return std::nullopt;
         }
@@ -96,7 +104,7 @@ Opt<Vec<Patron>> csv::load_patrons(const Path &path) {
     return output;
 }
 
-Opt<Patron> csv::parse_patron_line(const String &line) {
+Opt<Patron> csv::parse_patron_line(const String &line, int required_id) {
     // could be done character by character or using find but that's annoying..
     std::stringstream ss(line);
 
@@ -110,7 +118,7 @@ Opt<Patron> csv::parse_patron_line(const String &line) {
 
     String buf;
 
-    if (!std::getline(ss, buf)) {
+    if (!std::getline(ss, buf, ';')) {
         return std::nullopt;
     }
     // match PXXX where X is digit
@@ -121,44 +129,60 @@ Opt<Patron> csv::parse_patron_line(const String &line) {
     }
     auto [ptr, err] =
         std::from_chars(buf.data() + 1, buf.data() + buf.size(), patron_id);
-    if (err != std::errc()) {
+    if (err == std::errc{}) {
+        return std::nullopt;
+    }
+    if (err == std::errc::result_out_of_range || patron_id > 999) {
+        return std::nullopt;
+    }
+    if (patron_id != required_id) {
         return std::nullopt;
     }
 
-    if (!std::getline(ss, name)) {
+    if (!std::getline(ss, name, ';')) {
         return std::nullopt;
     }
 
-    if (!std::getline(ss, email)) {
+    if (!std::getline(ss, email, ';')) {
         return std::nullopt;
     }
 
-    if (!std::getline(ss, buf)) {
+    if (!std::getline(ss, buf, ';')) {
         return std::nullopt;
     }
     auto [ptr2, err2] =
         std::from_chars(buf.data(), buf.data() + buf.size(), checked_out_count);
-    if (err2 != std::errc()) {
+    if (err2 == std::errc::invalid_argument) {
+        return std::nullopt;
+    } else if (err2 == std::errc::result_out_of_range) {
         return std::nullopt;
     }
 
-    if (!std::getline(ss, buf)) {
+    if (!std::getline(ss, buf, ';')) {
         return std::nullopt;
     }
-    Opt<Vec<u64>> current = (csv::vector_from_chars(buf, '|'));
+    
+    Opt<Vec<u64>> current = csv::vector_from_chars(buf, '|');
     if (!current.has_value()) {
         return std::nullopt;
     }
 
-    if (!std::getline(ss, buf)) {
+    if (!std::getline(ss, buf, ';')) {
         return std::nullopt;
     }
     auto [ptr3, err3] =
         std::from_chars(buf.data(), buf.data() + buf.size(), fines_owned);
-    if (err3 != std::errc()) {
+    if (err3 == std::errc::invalid_argument) {
+        return std::nullopt;
+    } else if (err3 == std::errc::result_out_of_range) {
         return std::nullopt;
     }
     checked_out_count = current->size();
+
+    ss >> std::ws;
+    if (!ss.eof()) {
+        return std::nullopt;
+    }
 
     return Patron(patron_id, name, email, checked_out_count, *current,
                   fines_owned);
@@ -174,7 +198,7 @@ Opt<Vec<u64>> csv::vector_from_chars(const String &str, char delimiter) {
     while (!std::getline(ss, buf, delimiter)) {
         auto [ptr, err] =
             std::from_chars(buf.data(), buf.data() + buf.size(), num);
-        if (err != std::errc()) {
+        if (err == std::errc{}) {
             return std::nullopt;
         }
         ret.push_back(num);
