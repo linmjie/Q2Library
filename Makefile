@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -Wno-unused-parameter -fsanitize=address
+CXXFLAGS = -std=c++17 -Wall -Wextra -Wno-unused-parameter -fsanitize=address
 INCLUDES = -I./include/
 
 SRC_DIR := src

@@ -136,8 +136,8 @@ Opt<Patron> csv::parse_patron_line(const String &line) {
     if (!std::getline(ss, buf)) {
         return std::nullopt;
     }
-    auto [ptr2, err2] = std::from_chars(buf.data(), buf.data() + buf.size(),
-                                      checked_out_count);
+    auto [ptr2, err2] =
+        std::from_chars(buf.data(), buf.data() + buf.size(), checked_out_count);
     if (err2 != std::errc()) {
         return std::nullopt;
     }
@@ -160,7 +160,8 @@ Opt<Patron> csv::parse_patron_line(const String &line) {
     }
     checked_out_count = current->size();
 
-    return Patron(patron_id, name, email, checked_out_count, *current, fines_owned);
+    return Patron(patron_id, name, email, checked_out_count, *current,
+                  fines_owned);
 }
 
 // could be generalized with template but templates with .h & .cpp is annoying

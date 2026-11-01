@@ -8,7 +8,7 @@ enum class CheckoutStatus : bool { AVAILABLE, CHECKED_OUT };
 /**
  * @brief
  */
-Opt<CheckoutStatus> str_to_checkout_status(const String &str);
+[[nodiscard]] Opt<CheckoutStatus> str_to_checkout_status(const String &str);
 
 class Book {
 public:
@@ -55,4 +55,4 @@ private:
  *
  * @return The stream back out to use chain
  */
-std::ostream& operator<<(std::ostream& stream, const Book &book);
+std::ostream &operator<<(std::ostream &stream, const Book &book);

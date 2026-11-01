@@ -14,18 +14,19 @@ int Patron::get_patron_id() const { return this->patron_id; }
 int Patron::get_checked_out_count() const { return this->checked_out_count; }
 
 std::ostream &operator<<(std::ostream &stream, const Patron &patron) {
-    char patron_id[4];
-    patron_id[3] = '\0';
-    std::snprintf(patron_id, 3, "%d", patron.get_patron_id());
+    // c++ commitee may get mad at me for using printf...
+    // this can be done in c++20 with format but I'm avoiding the need for c++20
+    // String patron_id = std::format("{:03}", patron.get_patron_id());
+    char patron_id[5];
+    std::snprintf(patron_id, 5, "P%03d", patron.get_patron_id());
 
-    stream << patron_id << ';' << patron.get_name() << ';' 
-           << patron.get_email() << ';' << patron.get_checked_out_count() << ';';
+    stream << patron_id << ';' << patron.get_name() << ';' << patron.get_email()
+           << ';' << patron.get_checked_out_count() << ';';
 
     const Vec<u64> &current = patron.get_current();
     if (current.size() == 0) {
         stream << ';';
-    }
-    else if (current.size() == 1) {
+    } else if (current.size() == 1) {
         stream << current[0] << ';';
     } else {
         for (auto it = current.begin(); it != current.end() - 1; ++it) {
@@ -33,7 +34,8 @@ std::ostream &operator<<(std::ostream &stream, const Patron &patron) {
         }
         stream << current.back() << ';';
     }
-    // Source: https://arstechnica.com/civis/threads/resetting-stream-formatting-options-in-c.533692/
+    // Source:
+    // https://arstechnica.com/civis/threads/resetting-stream-formatting-options-in-c.533692/
     // Used to save and reset the flags of the ostream
     auto flags = stream.flags();
     stream << std::fixed << std::setprecision(2);
