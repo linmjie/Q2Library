@@ -1,10 +1,7 @@
 #include "Patron.hpp"
-#include <charconv>
-#include <fstream>
-#include <optional>
-#include <regex>
-#include <sstream>
-#include <system_error>
+#include <cstdio>
+#include <iomanip>
+#include <ios>
 
 Patron::Patron(int patron_id, const String &name, const String &email,
                int checked_out_count, const Vec<u64> &current,
@@ -19,73 +16,31 @@ double Patron::get_fines_owned() const { return this->fines_owned; }
 int Patron::get_patron_id() const { return this->patron_id; }
 int Patron::get_checked_out_count() const { return this->checked_out_count; }
 
-Opt<Vec<Patron>> load_patrons(const Path &path) {
-    Vec<Patron> output{};
-    std::ifstream csv(path);
-    if (!csv.is_open()) {
-        return std::nullopt;
+std::ostream &operator<<(std::ostream &stream, const Patron &patron) {
+    char patron_id[4];
+    patron_id[3] = '\0';
+    std::snprintf(patron_id, 3, "%d", patron.get_patron_id());
+
+    stream << patron_id << ';' << patron.get_name() << ';' 
+           << patron.get_email() << ';' << patron.get_checked_out_count() << ';';
+
+    const Vec<u64> &current = patron.get_current();
+    if (current.size() == 0) {
+        stream << ';';
     }
-
-    String head;
-    std::getline(csv, head);
-
-    String line;
-    while (std::getline(csv, line)) {
-        Opt<Patron> book = parse_patron_line(line);
-        if (!book.has_value()) {
-            return std::nullopt;
+    else if (current.size() == 1) {
+        stream << current[0] << ';';
+    } else {
+        for (auto it = current.begin(); it != current.end() - 1; ++it) {
+            stream << *it << '|';
         }
-        output.push_back(std::move(*book));
+        stream << current.back() << ';';
     }
-
-    return output;
-}
-
-Opt<Patron> parse_patron_line(const String &line) {
-    // could be done character by character or using find but that's annoying..
-    std::stringstream ss(line);
-
-    // name format is PXXX
-    String name;
-    String email;
-    int checked_out_count{};
-    double fines_owned{};
-
-    String buf;
-
-    int patron_id{};
-    Vec<u64> current{};
-
-    if (!std::getline(ss, name)) {
-        return std::nullopt;
-    }
-    // std::regex r("P[0-9]{3}");
-
-    if (!std::getline(ss, email)) {
-        return std::nullopt;
-    }
-
-    if (!std::getline(ss, buf)) {
-        return std::nullopt;
-    }
-    auto [ptr, err] = std::from_chars(buf.data(), buf.data() + buf.size(),
-                                      checked_out_count);
-    if (err != std::errc()) {
-        return std::nullopt;
-    }
-
-    if (!std::getline(ss, buf)) {
-        return std::nullopt;
-    }
-
-    if (!std::getline(ss, buf)) {
-        return std::nullopt;
-    }
-
-    if (!std::getline(ss, buf)) {
-        return std::nullopt;
-    }
-
-
-    return Patron(patron_id, name, email, checked_out_count, current, fines_owned);
+    // Source: https://arstechnica.com/civis/threads/resetting-stream-formatting-options-in-c.533692/
+    // Used to save and reset the flags of the ostream
+    auto flags = stream.flags();
+    stream << std::fixed << std::setprecision(2);
+    stream << patron.get_fines_owned();
+    stream.flags(flags);
+    return stream;
 }
