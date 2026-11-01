@@ -2,29 +2,30 @@
 
 #include "Book.hpp"
 #include "Patron.hpp"
+#include "Result.hpp"
 #include "Types.hpp"
 
 namespace csv {
 /**
  * @brief
  */
-[[nodiscard]] Opt<Vec<Book>> load_books(const Path &path);
+[[nodiscard]] Result<Vec<Book>> load_books(const Path &path);
 /**
  * @brief
  */
-[[nodiscard]] Opt<Book> parse_book_line(const String &line);
+[[nodiscard]] Result<Book> parse_book_line(const String &line);
 /**
  * @brief
  */
-[[nodiscard]] Opt<Vec<Patron>> load_patrons(const Path &path);
+[[nodiscard]] Result<Vec<Patron>> load_patrons(const Path &path);
 /**
  * @brief
  */
-[[nodiscard]] Opt<Patron> parse_patron_line(const String &line, int prev_id);
+[[nodiscard]] Result<Patron> parse_patron_line(const String &line, int prev_id);
 /**
- * @brief 
+ * @brief
  * @note May get swapped out with a templated version if needed
  */
-[[nodiscard]] Opt<Vec<u64>> vector_from_chars(const String &str,
-                                              char delimiter);
+[[nodiscard]] Result<Vec<u64>> vector_from_chars(const String &str,
+                                                 char delimiter);
 } // namespace csv

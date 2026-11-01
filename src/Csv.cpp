@@ -4,15 +4,14 @@
 #include "Types.hpp"
 #include <charconv>
 #include <fstream>
-#include <optional>
 #include <regex>
 #include <sstream>
 
-Opt<Vec<Book>> csv::load_books(const Path &path) {
+Result<Vec<Book>> csv::load_books(const Path &path) {
     Vec<Book> output{};
     std::ifstream csv(path);
     if (!csv.is_open()) {
-        return std::nullopt;
+        return Err{""};
     }
 
     String head;
@@ -20,9 +19,9 @@ Opt<Vec<Book>> csv::load_books(const Path &path) {
 
     String line;
     while (std::getline(csv, line)) {
-        Opt<Book> book = parse_book_line(line);
+        Result<Book> book = parse_book_line(line);
         if (!book.has_value()) {
-            return std::nullopt;
+            return Err{""};
         }
         output.push_back(std::move(*book));
     }
@@ -30,7 +29,7 @@ Opt<Vec<Book>> csv::load_books(const Path &path) {
     return output;
 }
 
-Opt<Book> csv::parse_book_line(const String &line) {
+Result<Book> csv::parse_book_line(const String &line) {
     // could be done character by character or using find but that's annoying..
     std::stringstream ss(line);
 
@@ -46,47 +45,42 @@ Opt<Book> csv::parse_book_line(const String &line) {
     // and return error values if the pattern didn't match up
 
     if (!std::getline(ss, title, ';')) {
-        return std::nullopt;
+        return Err{""};
     }
 
     if (!std::getline(ss, author, ';')) {
-        return std::nullopt;
+        return Err{""};
     }
 
     if (!std::getline(ss, buf, ';')) {
-        return std::nullopt;
+        return Err{""};
     }
     // Source: https://en.cppreference.com/cpp/utility/from_chars
     // Used to learn non-exception based safe atoi conversion
     auto [ptr, err] =
         std::from_chars(buf.data(), buf.data() + buf.size(), isbn);
     if (err == std::errc::invalid_argument) {
-        return std::nullopt;
+        return Err{""};
     } else if (err == std::errc::result_out_of_range) {
-        return std::nullopt;
+        return Err{""};
     }
 
-    if (!std::getline(ss, buf, ';')) {
-        return std::nullopt;
+    if (!std::getline(ss, buf)) {
+        return Err{""};
     }
     Opt<CheckoutStatus> status = str_to_checkout_status(buf);
     if (!status.has_value()) {
-        return std::nullopt;
-    }
-
-    ss >> std::ws;
-    if (!ss.eof()) {
-        return std::nullopt;
+        return Err{""};
     }
 
     return Book(title, author, isbn, *status);
 }
 
-Opt<Vec<Patron>> csv::load_patrons(const Path &path) {
+Result<Vec<Patron>> csv::load_patrons(const Path &path) {
     Vec<Patron> output{};
     std::ifstream csv(path);
     if (!csv.is_open()) {
-        return std::nullopt;
+        return Err{""};
     }
 
     String head;
@@ -94,9 +88,9 @@ Opt<Vec<Patron>> csv::load_patrons(const Path &path) {
 
     String line;
     for (int running_id = 0; std::getline(csv, line); running_id++) {
-        Opt<Patron> book = parse_patron_line(line, running_id);
+        Result<Patron> book = parse_patron_line(line, running_id);
         if (!book.has_value()) {
-            return std::nullopt;
+            return Err{""};
         }
         output.push_back(std::move(*book));
     }
@@ -104,7 +98,7 @@ Opt<Vec<Patron>> csv::load_patrons(const Path &path) {
     return output;
 }
 
-Opt<Patron> csv::parse_patron_line(const String &line, int required_id) {
+Result<Patron> csv::parse_patron_line(const String &line, int required_id) {
     // could be done character by character or using find but that's annoying..
     std::stringstream ss(line);
 
@@ -119,77 +113,73 @@ Opt<Patron> csv::parse_patron_line(const String &line, int required_id) {
     String buf;
 
     if (!std::getline(ss, buf, ';')) {
-        return std::nullopt;
+        return Err{""};
     }
     // match PXXX where X is digit
     std::regex re(R"(P\d{3})");
     bool matches = std::regex_match(buf, re);
     if (!matches) {
-        return std::nullopt;
+        return Err{""};
     }
     auto [ptr, err] =
         std::from_chars(buf.data() + 1, buf.data() + buf.size(), patron_id);
     if (err == std::errc{}) {
-        return std::nullopt;
+        return Err{""};
     }
     if (err == std::errc::result_out_of_range || patron_id > 999) {
-        return std::nullopt;
+        return Err{""};
     }
     if (patron_id != required_id) {
-        return std::nullopt;
+        return Err{""};
     }
 
     if (!std::getline(ss, name, ';')) {
-        return std::nullopt;
+        return Err{""};
     }
 
     if (!std::getline(ss, email, ';')) {
-        return std::nullopt;
+        return Err{""};
     }
 
     if (!std::getline(ss, buf, ';')) {
-        return std::nullopt;
+        return Err{""};
     }
     auto [ptr2, err2] =
         std::from_chars(buf.data(), buf.data() + buf.size(), checked_out_count);
     if (err2 == std::errc::invalid_argument) {
-        return std::nullopt;
+        return Err{""};
     } else if (err2 == std::errc::result_out_of_range) {
-        return std::nullopt;
+        return Err{""};
     }
 
     if (!std::getline(ss, buf, ';')) {
-        return std::nullopt;
+        return Err{""};
     }
     
-    Opt<Vec<u64>> current = csv::vector_from_chars(buf, '|');
+    Result<Vec<u64>> current = csv::vector_from_chars(buf, '|');
     if (!current.has_value()) {
-        return std::nullopt;
+        return Err{""};
     }
 
-    if (!std::getline(ss, buf, ';')) {
-        return std::nullopt;
+    if (!std::getline(ss, buf)) {
+        return Err{""};
     }
     auto [ptr3, err3] =
         std::from_chars(buf.data(), buf.data() + buf.size(), fines_owned);
     if (err3 == std::errc::invalid_argument) {
-        return std::nullopt;
+        return Err{""};
     } else if (err3 == std::errc::result_out_of_range) {
-        return std::nullopt;
+        return Err{""};
     }
-    checked_out_count = current->size();
-
-    ss >> std::ws;
-    if (!ss.eof()) {
-        return std::nullopt;
-    }
+    // I'm not overloading -> for this one line
+    checked_out_count = (*current).size();
 
     return Patron(patron_id, name, email, checked_out_count, *current,
                   fines_owned);
 }
 
 // could be generalized with template but templates with .h & .cpp is annoying
-Opt<Vec<u64>> csv::vector_from_chars(const String &str, char delimiter) {
+Result<Vec<u64>> csv::vector_from_chars(const String &str, char delimiter) {
     Vec<u64> ret;
     std::stringstream ss(str);
 
@@ -199,7 +189,7 @@ Opt<Vec<u64>> csv::vector_from_chars(const String &str, char delimiter) {
         auto [ptr, err] =
             std::from_chars(buf.data(), buf.data() + buf.size(), num);
         if (err == std::errc{}) {
-            return std::nullopt;
+            return Err{""};
         }
         ret.push_back(num);
     }
