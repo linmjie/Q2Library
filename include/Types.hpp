@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <filesystem>
 #include <optional>
 // #include <span>
@@ -16,6 +17,9 @@ using Str = std::string_view;
 using String = std::string;
 
 // template <typename T> using Span = std::span<const T>;
+
+template <typename T, size_t N>
+using Arr = std::array<T, N>;
 
 template <typename T> using Vec = std::vector<T>;
 

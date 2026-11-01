@@ -6,6 +6,10 @@
 #include "Types.hpp"
 
 namespace csv {
+constexpr Str JOINED_BOOK_HEADER = "title;author;isbn;status";
+constexpr Str JOINED_PATRON_HEADER =
+    "patron_id;name;email;checked_out_count;current;fines_owed";
+
 /**
  * @brief
  */

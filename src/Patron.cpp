@@ -1,4 +1,5 @@
 #include "Patron.hpp"
+#include <format>
 
 Patron::Patron(int patron_id, const String &name, const String &email,
                int checked_out_count, const Vec<u64> &current,
@@ -14,11 +15,7 @@ int Patron::get_patron_id() const { return this->patron_id; }
 int Patron::get_checked_out_count() const { return this->checked_out_count; }
 
 std::ostream &operator<<(std::ostream &stream, const Patron &patron) {
-    // c++ commitee may get mad at me for using printf...
-    // this can be done in c++20 with format but I'm avoiding the need for c++20
-    // String patron_id = std::format("{:03}", patron.get_patron_id());
-    char patron_id[5];
-    std::snprintf(patron_id, 5, "P%03d", patron.get_patron_id());
+    String patron_id = std::format("{:03}", patron.get_patron_id());
 
     stream << patron_id << ';' << patron.get_name() << ';' << patron.get_email()
            << ';' << patron.get_checked_out_count() << ';';
