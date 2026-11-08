@@ -5,8 +5,8 @@
 
 enum class CheckoutStatus : bool { AVAILABLE, CHECKED_OUT };
 // kinda coupled but whatever
-constexpr String AVAILABLE_STR = "Available";
-constexpr String CHECKED_OUT_STR = "CheckedOut";
+constexpr Str AVAILABLE_STR = "Available";
+constexpr Str CHECKED_OUT_STR = "CheckedOut";
 
 /**
  * @brief
