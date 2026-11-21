@@ -15,7 +15,9 @@ int main(int argc, char *argv[]) {
     Path patron_path = data / "patrons.csv";
     auto lib = csv::load_books(lib_path);
     if (!lib.has_value()) {
-        output_error(lib.error());
+        for (const auto &error : lib.error()) {
+            output_error(error);
+        }
     } else {
         for (const Book &book : *lib) {
             std::cout << book << '\n';
@@ -24,7 +26,9 @@ int main(int argc, char *argv[]) {
     std::cout << '\n';
     auto patrons = csv::load_patrons(patron_path);
     if (!patrons.has_value()) {
-        output_error(patrons.error());
+        for (const auto &error : patrons.error()) {
+            output_error(error);
+        }
     } else {
         for (const Patron &patron : *patrons) {
             std::cout << patron << '\n';

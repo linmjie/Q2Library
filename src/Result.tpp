@@ -17,35 +17,82 @@
  * Source: https://en.cppreference.com/cpp/language/inline
  */
 
-inline Err::Err(const String &err) : m_err(err) {}
+template <typename ErrType>
+inline Err_t<ErrType>::Err_t(const ErrType &err) : m_err(err) {}
 
-template <typename Some>
-inline Result<Some>::Result(const Some &value) : inner(value) {}
+template <typename ErrType>
+inline Err_t<ErrType>::Err_t(ErrType &&err)
+    : m_err(std::forward<ErrType>(err)) {}
 
-template <typename Some>
-inline Result<Some>::Result(const Err &err) : inner(err.m_err) {}
+template <typename ErrType>
+template <typename... Args>
+inline Err_t<ErrType>::Err_t(Args &&...args)
+    : m_err(std::forward<Args>(args)...) {}
 
-template <typename Some>
-inline Result<Some>::Result(const String &err) : inner(err) {}
+template <typename SomeType>
+inline Ok_t<SomeType>::Ok_t(const SomeType &ok) : m_ok(ok) {}
 
-template <typename Some> inline bool Result<Some>::has_value() const noexcept {
-    return std::holds_alternative<Some>(this->inner);
+template <typename SomeType>
+inline Ok_t<SomeType>::Ok_t(SomeType &&ok) : m_ok(std::forward<SomeType>(ok)) {}
+
+template <typename SomeType>
+template <typename... Args>
+inline Ok_t<SomeType>::Ok_t(Args &&...args)
+    : m_ok(std::forward<Args>(args)...) {}
+
+template <typename SomeType, typename ErrType>
+inline Result<SomeType, ErrType>::Result(const SomeType &value)
+    : inner(value) {}
+
+template <typename SomeType, typename ErrType>
+inline Result<SomeType, ErrType>::Result(SomeType &&value)
+    : inner(std::forward<SomeType>(value)) {}
+
+template <typename SomeType, typename ErrType>
+inline Result<SomeType, ErrType>::Result(const Err_t<ErrType> &err)
+    : inner(err.m_err) {}
+
+template <typename SomeType, typename ErrType>
+inline Result<SomeType, ErrType>::Result(Err_t<ErrType> &&err)
+    : inner(std::forward<ErrType>(err.m_err)) {}
+
+template <typename SomeType, typename ErrType>
+inline Result<SomeType, ErrType>::Result(const Ok_t<SomeType> &ok)
+    : inner(ok.m_ok) {}
+
+template <typename SomeType, typename ErrType>
+inline Result<SomeType, ErrType>::Result(Ok_t<SomeType> &&ok)
+    : inner(std::forward<SomeType>(ok.m_ok)) {}
+
+template <typename SomeType, typename ErrType>
+inline Result<SomeType, ErrType>::Result(const ErrType &err) : inner(err) {}
+
+template <typename SomeType, typename ErrType>
+inline Result<SomeType, ErrType>::Result(ErrType &&err)
+    : inner(std::forward<ErrType>(err)) {}
+
+template <typename SomeType, typename ErrType>
+inline bool Result<SomeType, ErrType>::has_value() const noexcept {
+    return std::holds_alternative<SomeType>(this->inner);
 }
 
-template <typename Some> inline Some &Result<Some>::value() {
+template <typename SomeType, typename ErrType>
+inline SomeType &Result<SomeType, ErrType>::value() {
     if (this->has_value()) {
-        return std::get<Some>(this->inner);
+        return std::get<SomeType>(this->inner);
     }
     throw "There is not a value in the result";
 }
 
-template <typename Some> inline Some &Result<Some>::operator*() {
+template <typename SomeType, typename ErrType>
+inline SomeType &Result<SomeType, ErrType>::operator*() {
     return this->value();
 }
 
-template <typename Some> inline String &Result<Some>::error() {
+template <typename SomeType, typename ErrType>
+inline ErrType &Result<SomeType, ErrType>::error() {
     if (!this->has_value()) {
-        return std::get<String>(this->inner);
+        return std::get<ErrType>(this->inner);
     }
     throw "There is not an error in the result";
 }

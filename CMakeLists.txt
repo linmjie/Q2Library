@@ -23,6 +23,7 @@ target_compile_options(libthing PRIVATE
         -Wall
         -Wextra
         -Wno-unused-parameter
+        -g
     >
 
     # MSVC equivalents

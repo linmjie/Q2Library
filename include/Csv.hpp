@@ -10,10 +10,14 @@ constexpr Str JOINED_BOOK_HEADER = "title;author;isbn;status";
 constexpr Str JOINED_PATRON_HEADER =
     "patron_id;name;email;checked_out_count;current;fines_owed";
 
+// I don't feel like making full structs for the errors but Vec<String> is
+// rather ambiguous
+using Errors = Vec<String>;
+
 /**
  * @brief
  */
-[[nodiscard]] Result<Vec<Book>> load_books(const Path &path);
+[[nodiscard]] Result<Vec<Book>, Errors> load_books(const Path &path);
 /**
  * @brief
  */
@@ -21,7 +25,7 @@ constexpr Str JOINED_PATRON_HEADER =
 /**
  * @brief
  */
-[[nodiscard]] Result<Vec<Patron>> load_patrons(const Path &path);
+[[nodiscard]] Result<Vec<Patron>, Errors> load_patrons(const Path &path);
 /**
  * @brief
  */

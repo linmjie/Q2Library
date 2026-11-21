@@ -6,22 +6,79 @@
 /**
  * @brief A wrapper struct that enables easy explicit error making for Result
  */
-struct Err {
-    explicit Err(const String &value);
-    String m_err;
+template <typename ErrType = String>
+struct Err_t {
+    explicit Err_t(const ErrType &value);
+    explicit Err_t(ErrType &&value);
+
+    template <typename... Args>
+    explicit Err_t(Args &&...args);
+
+    ErrType m_err;
 };
+
+template <typename ErrType>
+[[nodiscard]] constexpr inline Err_t<ErrType> Err(const ErrType &value) {
+    return Err_t(value);
+}
+
+template <typename ErrType>
+[[nodiscard]] constexpr inline Err_t<ErrType> Err(ErrType &&value) {
+    return Err_t(std::forward<ErrType>(value));
+}
+
+template <typename ErrType, typename... Args>
+[[nodiscard]] constexpr inline Err_t<ErrType> Err(Args &&...args) {
+    return Err_t<ErrType>(std::forward<ErrType>(args)...);
+}
+
+[[nodiscard]] inline Err_t<String> Err(const char *str_literal) {
+    return Err_t(String(str_literal));
+}
+
+/**
+ * @brief A wrapper struct that enables easy explicit good type making for
+ * Result
+ */
+template <typename SomeType>
+struct Ok_t {
+    explicit Ok_t(const SomeType &value);
+    explicit Ok_t(SomeType &&value);
+
+    template <typename... Args>
+    explicit Ok_t(Args &&...args);
+
+    SomeType m_ok;
+};
+
+template <typename SomeType>
+[[nodiscard]] constexpr inline Ok_t<SomeType> Ok(const SomeType &value) {
+    return Ok_t(value);
+}
+
+template <typename SomeType>
+[[nodiscard]] constexpr inline Ok_t<SomeType> Ok(SomeType &&value) {
+    return Ok_t(std::forward<SomeType>(value));
+}
+
+template <typename SomeType, typename... Args>
+[[nodiscard]] constexpr inline Ok_t<SomeType> Ok(Args &&...args) {
+    return Ok_t<SomeType>(std::forward<Args>(args)...);
+}
 
 /**
  * @brief A lightweight, specialized version of c++23's std::expected
- *        I don't feel like putting any errors other than strings
- *        so it's only for strings lol
- * @note Attemping to make this class take a generic error type would
- *       require refactoring the wrapper Err struct in a way I don't know
  */
-template <typename Some> class Result {
+template <typename SomeType, typename ErrType = String> class Result {
 public:
-    Result(const Some &value);
-    Result(const Err &err);
+    explicit Result(const SomeType &value);
+    explicit Result(SomeType &&value);
+
+    Result(const Err_t<ErrType> &err);
+    Result(Err_t<ErrType> &&err);
+
+    Result(const Ok_t<SomeType> &err);
+    Result(Ok_t<SomeType> &&err);
     /**
      * @brief
      */
@@ -29,22 +86,23 @@ public:
     /**
      * @brief
      */
-    [[nodiscard]] Some &value();
+    [[nodiscard]] SomeType &value();
     /**
      * @brief
      */
-    [[nodiscard]] Some &operator*();
+    [[nodiscard]] SomeType &operator*();
     /**
      * @brief
      */
-    [[nodiscard]] String &error();
+    [[nodiscard]] ErrType &error();
 
     // I don't feel like implementing the monadic operations
 private:
-    Result(const String &err);
-    std::variant<Some, String> inner;
+    Result(const ErrType &err);
+    Result(ErrType &&err);
+    std::variant<SomeType, ErrType> inner;
 
-    friend Err;
+    friend Err_t<ErrType>;
 };
 
 /*
